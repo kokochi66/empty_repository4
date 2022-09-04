@@ -23,10 +23,16 @@ public class MstUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+    @Column(nullable = false)
     private String userName;
     private String nickName;
+
+    @Column(nullable = false)
     private String password;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MstRole role;
 
     private LocalDateTime regDate;
     private LocalDateTime modDate;
