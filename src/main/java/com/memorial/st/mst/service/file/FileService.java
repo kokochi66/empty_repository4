@@ -1,8 +1,7 @@
 package com.memorial.st.mst.service.file;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
+import net.bytebuddy.utility.RandomString;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,8 @@ public class FileService {
                 init();
             }
             log.info("TEST :: root = " + root.toString());
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String ext = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+            String fileName = RandomString.make(32) + "." + ext;
             Files.copy(file.getInputStream(), root.resolve(fileName));
             return fileName;
         } catch (Exception e) {

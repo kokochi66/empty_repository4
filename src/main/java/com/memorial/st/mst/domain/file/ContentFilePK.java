@@ -1,15 +1,9 @@
 package com.memorial.st.mst.domain.file;
 
 import com.memorial.st.mst.domain.file.model.FileType;
-import com.memorial.st.mst.domain.music.model.MusicType;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.Table;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Builder
 @Getter
