@@ -13,6 +13,7 @@ import javax.persistence.*;
 @Table(name = "mst_image")
 public class MstImage extends MstContent {
 
+    private static final long serialVersionUID = 1895665416371675768L;
     private String description;
     @Enumerated(EnumType.STRING)
     private ImageType imageType;

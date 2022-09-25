@@ -1,5 +1,6 @@
 package com.memorial.st.mst.domain.content;
 
+import com.memorial.st.mst.domain.content.enumType.SeasonType;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,17 +13,18 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "mst_highlight")
-public class MstHighlight implements Serializable {
+@Table(name = "mst_season")
+public class MstSeason implements Serializable {
+    private static final long serialVersionUID = 7630412837576971775L;
 
-    private static final long serialVersionUID = 8873615805124886722L;
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "highlight_id")
+    @Column(name = "season_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "content_id", nullable = false)
     private MstContent content;
 
-    private Integer time;
+    @Enumerated(EnumType.STRING)
+    private SeasonType season;
 }

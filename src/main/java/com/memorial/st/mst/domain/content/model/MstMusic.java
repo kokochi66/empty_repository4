@@ -17,6 +17,7 @@ import javax.persistence.Table;
 @Table(name = "mst_music")
 public class MstMusic extends MstContent {
 
+    private static final long serialVersionUID = 4627966143226861068L;
     private String title;
     private String vocal;
     private Float volume;
