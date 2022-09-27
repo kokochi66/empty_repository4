@@ -1,14 +1,17 @@
 package com.memorial.st.mst.domain.content.model;
 
 import com.memorial.st.mst.domain.content.MstContent;
+import com.memorial.st.mst.domain.content.MstHighlight;
+import com.memorial.st.mst.domain.content.enumType.ImageType;
+import com.memorial.st.mst.domain.content.enumType.MusicType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @DiscriminatorValue("MUSIC")
@@ -21,4 +24,10 @@ public class MstMusic extends MstContent {
     private String title;
     private String vocal;
     private Float volume;
+
+    @Enumerated(EnumType.STRING)
+    private MusicType musicType;
+
+    @OneToMany(mappedBy = "content", fetch = FetchType.LAZY)
+    private List<MstHighlight> highlightList = new ArrayList<>();
 }

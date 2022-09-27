@@ -1,17 +1,22 @@
 package com.memorial.st.mst.controller.content;
 
+import com.memorial.st.mst.domain.content.enumType.MusicType;
+import com.memorial.st.mst.domain.content.enumType.SeasonType;
 import com.memorial.st.mst.domain.content.model.MstMusic;
 import com.memorial.st.mst.service.file.FileService;
 import com.memorial.st.mst.service.content.MusicService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -23,19 +28,8 @@ public class MusicController {
     @Autowired
     private MusicService musicService;
 
-
-    @PostMapping("/insert")
-    public String addNewMusic(MstMusic music) throws IOException {
-        log.info("/music/insert - " + music);
-
-        music.setPoint(0);
-        music.setRegDate(LocalDateTime.now());
-        music.setVolume(0.5F);
-        musicService.upsertMusic(music);
-
-//        if (!music.getMusicFile().isEmpty()) {
-//            fileService.save(music.getMusicFile());
-//        }
-        return "redirect:/";
+    @GetMapping("/type/list")
+    public List<MusicType> animeSeasonList() {
+        return Arrays.asList(MusicType.values());
     }
 }

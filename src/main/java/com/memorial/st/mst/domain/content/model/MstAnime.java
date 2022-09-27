@@ -22,7 +22,7 @@ public class MstAnime extends MstContent {
     private String title;
     private String director;
 
-    @OneToMany(mappedBy = "content")
+    @OneToMany(mappedBy = "content", fetch = FetchType.LAZY)
     private List<MstSeason> seasonList = new ArrayList<>();
 
     @Transient

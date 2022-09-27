@@ -1,5 +1,6 @@
 package com.memorial.st.mst.domain.content;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.memorial.st.mst.domain.file.ContentFilePK;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,11 +34,8 @@ public abstract class MstContent implements Serializable {
     @JoinColumn(name = "parent_id")
     private MstContent parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<MstContent> child = new ArrayList<>();
-
-    @OneToMany(mappedBy = "content")
-    private List<MstHighlight> highlightList = new ArrayList<>();
 
     @Transient
     private MultipartFile savedFile;
