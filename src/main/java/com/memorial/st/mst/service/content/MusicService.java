@@ -1,6 +1,8 @@
 package com.memorial.st.mst.service.content;
 
+import com.memorial.st.mst.domain.content.MstContent;
 import com.memorial.st.mst.domain.content.model.MstMusic;
+import com.memorial.st.mst.service.content.repository.ContentRepository;
 import com.memorial.st.mst.service.file.FileService;
 import com.memorial.st.mst.service.content.repository.MusicRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,8 @@ public class MusicService {
     @Autowired
     private MusicRepository musicRepository;
     @Autowired
+    private ContentRepository contentRepository;
+    @Autowired
     private FileService fileService;
 
     public List<MstMusic> getMusicList() {
@@ -29,10 +33,14 @@ public class MusicService {
 
     @Transactional
     public void upsertMusic(MstMusic music) {
-        MstMusic save = musicRepository.save(music);
-        if(music.getSavedFile() != null) {
-            fileService.save(music.getSavedFile());
+        if (music.getParentId() != null) {
+            MstContent parentContent = contentRepository.findById(music.getParentId()).orElse(null);
+            music.setParent(parentContent);
         }
+        if (music.getSavedFile() != null) {
+            music.setFileSrc(fileService.save(music.getSavedFile()));
+        }
+        musicRepository.save(music);
     }
 
     public void deleteMusicByMusicId(Long musicId) {

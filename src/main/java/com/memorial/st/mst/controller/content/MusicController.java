@@ -2,6 +2,7 @@ package com.memorial.st.mst.controller.content;
 
 import com.memorial.st.mst.domain.content.enumType.MusicType;
 import com.memorial.st.mst.domain.content.enumType.SeasonType;
+import com.memorial.st.mst.domain.content.model.MstAnime;
 import com.memorial.st.mst.domain.content.model.MstMusic;
 import com.memorial.st.mst.service.file.FileService;
 import com.memorial.st.mst.service.content.MusicService;
@@ -31,5 +32,14 @@ public class MusicController {
     @GetMapping("/type/list")
     public List<MusicType> animeSeasonList() {
         return Arrays.asList(MusicType.values());
+    }
+
+    @PostMapping("/insert")
+    public void addNewMusic(MstMusic music) throws IOException {
+        log.info("/music/insert - " + music.getTitle());
+        if (music.getSavedFile() != null) {
+            log.info("/music/insert - 파일 들어옴");
+        }
+        musicService.upsertMusic(music);
     }
 }

@@ -36,7 +36,4 @@ public abstract class MstContent implements Serializable {
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<MstContent> child = new ArrayList<>();
-
-    @Transient
-    private MultipartFile savedFile;
 }

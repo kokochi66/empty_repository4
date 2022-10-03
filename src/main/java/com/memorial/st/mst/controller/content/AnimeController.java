@@ -34,7 +34,7 @@ public class AnimeController {
     }
 
     @PostMapping("/insert")
-    public void addNewMusic(MstAnime anime) throws IOException {
+    public void addNewAnime(MstAnime anime) throws IOException {
         log.info("/anime/insert - " + anime);
         animeService.upsertAnime(anime);
     }

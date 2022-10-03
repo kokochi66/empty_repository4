@@ -4,10 +4,12 @@ import com.memorial.st.mst.domain.content.MstContent;
 import com.memorial.st.mst.domain.content.MstHighlight;
 import com.memorial.st.mst.domain.content.enumType.ImageType;
 import com.memorial.st.mst.domain.content.enumType.MusicType;
+import com.memorial.st.mst.domain.content.enumType.SeasonType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -27,7 +29,14 @@ public class MstMusic extends MstContent {
 
     @Enumerated(EnumType.STRING)
     private MusicType musicType;
+    @Enumerated(EnumType.STRING)
+    private SeasonType season;
 
     @OneToMany(mappedBy = "content", fetch = FetchType.LAZY)
     private List<MstHighlight> highlightList = new ArrayList<>();
+
+    @Transient
+    private Long parentId;
+    @Transient
+    private MultipartFile savedFile;
 }

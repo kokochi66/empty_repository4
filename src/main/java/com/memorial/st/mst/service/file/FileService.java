@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,7 +33,7 @@ public class FileService {
     public void init() {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
-            URI uri = classLoader.getResource(".").toURI();
+            URI uri = Objects.requireNonNull(classLoader.getResource(".")).toURI();
             uploadPath = Paths.get(uri) + "/static/files";
             Files.createDirectories(Paths.get(uploadPath));
         } catch (IOException | URISyntaxException e) {
@@ -73,12 +74,11 @@ public class FileService {
     }
 
     public void deleteAll() {
-        FileSystemUtils.deleteRecursively(Paths.get(uploadPath)
-                .toFile());
+        FileSystemUtils.deleteRecursively(Paths.get(uploadPath).toFile());
     }
 
     public void deleteByFileName(String fileName) {
-
+        FileSystemUtils.deleteRecursively(Paths.get(uploadPath + fileName).toFile());
     }
 
     public List<Path> loadAll() {

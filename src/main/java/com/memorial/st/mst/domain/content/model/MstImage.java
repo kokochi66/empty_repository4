@@ -3,6 +3,7 @@ package com.memorial.st.mst.domain.content.model;
 import com.memorial.st.mst.domain.content.MstContent;
 import com.memorial.st.mst.domain.content.enumType.ImageType;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.*;
 
@@ -17,4 +18,7 @@ public class MstImage extends MstContent {
     private String description;
     @Enumerated(EnumType.STRING)
     private ImageType imageType;
+
+    @Transient
+    private MultipartFile savedFile;
 }
