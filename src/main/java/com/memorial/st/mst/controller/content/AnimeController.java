@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 @Slf4j
 @RestController
 @RequestMapping(value = "/anime")
