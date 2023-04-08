@@ -1,6 +1,7 @@
 package com.memorial.st.mst.controller.user;
 
 import com.memorial.st.mst.domain.user.MstUser;
+import com.memorial.st.mst.interceptor.AuthExcludes;
 import com.memorial.st.mst.service.user.UserService;
 import com.memorial.st.mst.service.user.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,8 @@ public class UserController {
 
 
     // 로그인
-    @PostMapping("/login")
+    @AuthExcludes
+    @PostMapping("/auth/login")
     public String login(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
         log.info("/user/login - 로그인 {}", user);
         Cookie cookie = new Cookie("PRJ-MST-CENT-USER", userService.userLogin(user.getUserId()));
@@ -49,6 +51,7 @@ public class UserController {
     }
 
     // 회원가입
+    @AuthExcludes
     @PostMapping("/register")
     public String register(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
         log.info("/user/register - 회원가입");

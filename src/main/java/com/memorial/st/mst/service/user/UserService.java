@@ -1,11 +1,13 @@
 package com.memorial.st.mst.service.user;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.service.user.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
-import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Cipher;
@@ -14,10 +16,11 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
+import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.Base64;
 
 @Service
 @Slf4j
@@ -26,8 +29,11 @@ public class UserService {
     @Autowired
     private MstUserRepository mstUserRepository;
 
-    private final static String encryptKey = "y2Q7JKDeQXT25u2e";
-    private final static int GCM_IV_LENGTH = 12;
+    @Value("${auth.encrypt.key}")
+    private String encrpytKey;
+
+    @Value("${auth.project.id}")
+    private String projectId;
 
     public MstUser getUser(Long userId) throws Exception {
         return mstUserRepository.findById(userId).orElseThrow(() -> new Exception("Not Found User"));
@@ -36,15 +42,18 @@ public class UserService {
     // 로그인
     public String userLogin(Long userId) throws Exception {
         MstUser user = getUser(userId);
-        SecretKey secretKey = new SecretKeySpec(encryptKey.getBytes(), "AES");
-        String iv = RandomString.make(GCM_IV_LENGTH);
-        byte[] encrypt = encrypt(("{userId:" + user.getUserId() + ", password:" + user.getPassword() + ", role:" + user.getRole()+"}"), secretKey, iv);
-        log.info("TEST :: encrypt = {}", encrypt.toString());
-        return encrypt.toString();
+
+        String jwtToken = JWT.create()
+                .withIssuer(projectId)
+                .withClaim("userId", user.getUserId())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 3600 * 1000)) // 만료 시간 설정 (1시간)
+                .sign(Algorithm.HMAC256(encrpytKey)); // 서명 알고리즘 및 비밀 키 설정
+        log.info("TEST :: encrypt = {}", jwtToken);
+        return jwtToken;
     }
 
     public MstUser getUserCookie(String plainText) throws Exception {
-        SecretKey secretKey = new SecretKeySpec(encryptKey.getBytes(), "AES");
+        SecretKey secretKey = new SecretKeySpec(encrpytKey.getBytes(), "AES");
         String decrypt = decrypt(plainText.getBytes(), secretKey);
         log.info("TEST :: decrpyt {}", decrypt);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -56,14 +65,6 @@ public class UserService {
     public MstUser register(MstUser user) throws Exception {
         user.setModDate(LocalDateTime.now());
         return mstUserRepository.save(user);
-    }
-
-    public static void main(String[] args) throws Exception{
-        SecretKey secretKey = new SecretKeySpec(encryptKey.getBytes(), "AES");
-        byte[] encrypt = encrypt("testasdasdasdasdasd", secretKey, "abc");
-        System.out.println("TEST :: encrypt = " + encrypt.toString());
-        String decrypt = decrypt(encrypt, secretKey);
-        System.out.println("TEST :: decrypt = " + decrypt);
     }
 
     private static byte[] encrypt(String plaintext, SecretKey secretKey, String iv) throws Exception {
@@ -83,12 +84,19 @@ public class UserService {
     private static String decrypt(byte[] cipherMessage, SecretKey secretKey) throws Exception {
         final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         //use first 12 bytes for iv
-        AlgorithmParameterSpec gcmIv = new GCMParameterSpec(128, cipherMessage, 0, GCM_IV_LENGTH);
+        AlgorithmParameterSpec gcmIv = new GCMParameterSpec(128, cipherMessage, 0, 12);
         cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmIv);
 
         //use everything from 12 bytes on as ciphertext
-        byte[] plainText = cipher.doFinal(cipherMessage, GCM_IV_LENGTH, cipherMessage.length - GCM_IV_LENGTH);
+        byte[] plainText = cipher.doFinal(cipherMessage, 12, cipherMessage.length - 12);
 
         return new String(plainText, StandardCharsets.UTF_8);
+    }
+
+    private static String generateRandomString(int length) {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] randomBytes = new byte[length];
+        secureRandom.nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 }
