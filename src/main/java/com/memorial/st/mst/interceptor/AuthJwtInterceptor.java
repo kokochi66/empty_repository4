@@ -69,24 +69,15 @@ public class AuthJwtInterceptor implements HandlerInterceptor {
             }
         }
 
-        // 쿠키에서 JWT 토큰 찾기
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
+        // Authorization 헤더에서 JWT 토큰 찾기
+        String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증되지 않은 요청입니다.");
             return false;
         }
 
-        Cookie jwtCookie = Arrays.stream(cookies)
-                .filter(cookie -> "PRJ-MST-CENT-USER".equals(cookie.getName()))
-                .findFirst()
-                .orElse(null);
-
-        if (jwtCookie == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증되지 않은 요청입니다.");
-            return false;
-        }
-
-        String jwtToken = jwtCookie.getValue();
+        String jwtToken = authorizationHeader.substring(7); // "Bearer "를 제외한 나머지 부분
 
         try {
             // JWT 토큰 검증

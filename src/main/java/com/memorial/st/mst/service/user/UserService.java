@@ -68,6 +68,7 @@ public class UserService {
     }
 
     public MstUser register(MstUser user) throws Exception {
+        user.setRegDate(LocalDateTime.now());
         user.setModDate(LocalDateTime.now());
         return mstUserRepository.save(user);
     }

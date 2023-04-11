@@ -1,6 +1,7 @@
 package com.memorial.st.mst.controller.user;
 
 import com.google.common.util.concurrent.RateLimiter;
+import com.memorial.st.mst.controller.user.model.MstUserResponse;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.interceptor.AuthExcludes;
 import com.memorial.st.mst.service.user.UserService;
@@ -29,60 +30,22 @@ public class UserController {
     // 로그인
     @AuthExcludes
     @PostMapping("/login")
-    public String login(@RequestBody MstUser user, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        log.info("/user/login - 로그인 {}", user);
-        Cookie cookie = new Cookie("PRJ-MST-CENT-USER", userService.userLogin(user.getUserId(), user.getPassword()));
-        response.addCookie(cookie);
-        return "로그인 성공";
-    }
-
-    // 로그아웃
-    @PostMapping("/logout")
-    public String logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        log.info("/user/logout - 로그아웃");
-        Cookie[] cookies = request.getCookies();
-        if(cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("PRJ-MST-CENT-USER")) {
-                    cookie.setMaxAge(0);
-                    response.addCookie(cookie);
-                    break;
-                }
-            }
+    public Boolean login(@RequestBody MstUser user, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        try {
+            log.info("/user/login - 로그인 {}", user);
+            String jwtToken = userService.userLogin(user.getUserId(), user.getPassword());
+            response.setHeader("Authorization", "Bearer " + jwtToken); // 표준화된 형식에 맞게 JWT 토큰을 Authorization 헤더에 담기
+            return true;
+        } catch (Exception e) {
+            return false;
         }
-        return "로그아웃 성공";
     }
 
     // 회원가입
     @AuthExcludes
     @PostMapping("/register")
-    public String register(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
+    public MstUserResponse register(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
         log.info("/user/register - 회원가입");
-        userService.register(user);
-        return "회원가입 성공";
+        return new MstUserResponse(userService.register(user));
     }
-
-    // 사용자 인증
-    @GetMapping("/info")
-    public MstUser userInfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        log.info("/user/info - 사용자 정보 가져오기");
-
-        String decryptValue = null;
-
-        Cookie[] cookies = request.getCookies();
-        if(cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName().equals("PRJ-MST-CENT-USER")) {
-                    decryptValue = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        log.info("TEST :: cookieString = {}", decryptValue);
-        MstUser user = userService.getUserCookie(decryptValue);
-        return user;
-    }
-
-    // 사용자 데이터 가져오기
 }
