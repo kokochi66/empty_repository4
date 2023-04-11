@@ -56,7 +56,7 @@ public class UserTest {
     public void testUserLogin() throws Exception {
         // 임의의 사용자 ID로 로그인 테스트
         Long userId = testUser.getUserId();
-        String jwtToken = userService.userLogin(userId);
+        String jwtToken = userService.userLogin(userId, testUser.getPassword());
 
         // JWT 토큰이 비어있지 않은지 확인
         assertNotNull(jwtToken);

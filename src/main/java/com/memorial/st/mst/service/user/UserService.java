@@ -3,6 +3,7 @@ package com.memorial.st.mst.service.user;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.service.user.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +41,18 @@ public class UserService {
     }
 
     // 로그인
-    public String userLogin(Long userId) throws Exception {
+    public String userLogin(Long userId, String password) throws Exception {
         MstUser user = getUser(userId);
+        if (!user.getPassword().equalsIgnoreCase(password)) {
+            throw new Exception("비밀번호가 틀립니다.");
+        }
 
         String jwtToken = JWT.create()
                 .withIssuer(projectId)
                 .withClaim("userId", user.getUserId())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 3600 * 1000)) // 만료 시간 설정 (1시간)
                 .sign(Algorithm.HMAC256(encrpytKey)); // 서명 알고리즘 및 비밀 키 설정
+        // HS512 알고리즘을 사용하여 더 강력한 암호화 알고리즘을 사용하기
         log.info("TEST :: encrypt = {}", jwtToken);
         return jwtToken;
     }

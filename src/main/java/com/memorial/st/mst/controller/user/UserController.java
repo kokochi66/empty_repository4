@@ -1,5 +1,6 @@
 package com.memorial.st.mst.controller.user;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.interceptor.AuthExcludes;
 import com.memorial.st.mst.service.user.UserService;
@@ -7,11 +8,14 @@ import com.memorial.st.mst.service.user.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @Slf4j
@@ -22,13 +26,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
     // 로그인
     @AuthExcludes
-    @PostMapping("/auth/login")
-    public String login(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
+    @PostMapping("/login")
+    public String login(@RequestBody MstUser user, HttpServletRequest request, HttpServletResponse response) throws Exception {
         log.info("/user/login - 로그인 {}", user);
-        Cookie cookie = new Cookie("PRJ-MST-CENT-USER", userService.userLogin(user.getUserId()));
+        Cookie cookie = new Cookie("PRJ-MST-CENT-USER", userService.userLogin(user.getUserId(), user.getPassword()));
         response.addCookie(cookie);
         return "로그인 성공";
     }
