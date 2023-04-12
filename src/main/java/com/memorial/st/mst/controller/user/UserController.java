@@ -1,6 +1,7 @@
 package com.memorial.st.mst.controller.user;
 
 import com.google.common.util.concurrent.RateLimiter;
+import com.memorial.st.mst.controller.user.model.MstUserRequest;
 import com.memorial.st.mst.controller.user.model.MstUserResponse;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.interceptor.AuthExcludes;
@@ -30,10 +31,9 @@ public class UserController {
     // 로그인
     @AuthExcludes
     @PostMapping("/login")
-    public Boolean login(@RequestBody MstUser user, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public Boolean login(@RequestBody MstUserRequest request, HttpServletResponse response) throws Exception {
         try {
-            log.info("/user/login - 로그인 {}", user);
-            String jwtToken = userService.userLogin(user.getUserId(), user.getPassword());
+            String jwtToken = userService.userLogin(request.getUserId(), request.getPassword());
             response.setHeader("Authorization", "Bearer " + jwtToken); // 표준화된 형식에 맞게 JWT 토큰을 Authorization 헤더에 담기
             return true;
         } catch (Exception e) {
@@ -44,8 +44,7 @@ public class UserController {
     // 회원가입
     @AuthExcludes
     @PostMapping("/register")
-    public MstUserResponse register(@RequestBody MstUser user, HttpServletResponse response) throws Exception {
-        log.info("/user/register - 회원가입");
-        return new MstUserResponse(userService.register(user));
+    public MstUserResponse register(@RequestBody MstUserRequest request, HttpServletResponse response) throws Exception {
+        return new MstUserResponse(userService.register(request.getUserName(), request.getNickName(), request.getPassword(), request.getRole()));
     }
 }

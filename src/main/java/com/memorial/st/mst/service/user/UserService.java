@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
+import com.memorial.st.mst.domain.user.MstRole;
 import com.memorial.st.mst.domain.user.MstUser;
 import com.memorial.st.mst.service.user.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -67,10 +68,14 @@ public class UserService {
         return mstUser;
     }
 
-    public MstUser register(MstUser user) throws Exception {
-        user.setRegDate(LocalDateTime.now());
-        user.setModDate(LocalDateTime.now());
-        return mstUserRepository.save(user);
+    public MstUser register(String userName, String nickName, String password, MstRole role) throws Exception {
+        return mstUserRepository.save(MstUser.builder()
+                        .userName(userName)
+                        .nickName(nickName)
+                        .password(password)
+                        .regDate(LocalDateTime.now())
+                        .modDate(LocalDateTime.now())
+                        .role(role).build());
     }
 
     private static byte[] encrypt(String plaintext, SecretKey secretKey, String iv) throws Exception {
