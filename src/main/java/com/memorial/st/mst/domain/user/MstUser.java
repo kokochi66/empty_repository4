@@ -32,4 +32,12 @@ public class MstUser {
 
     private LocalDateTime regDate;
     private LocalDateTime modDate;
+
+    // 사용자 개인정보
+    private String gender;  // 성별
+    private LocalDateTime birthDate; // 생년월일
+    private String email;
+    private String address;         // 주소
+    private String nationality;     //  국적
+    private String profileImgUrl;      // 프로필 이미지url
 }
