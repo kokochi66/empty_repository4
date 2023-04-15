@@ -1,6 +1,13 @@
 package com.memorial.st.mst.config;
 
+import com.memorial.st.mst.utils.CertificateUtils;
 import com.memorial.st.mst.utils.KeyPairGeneratorUtils;
+import com.memorial.st.mst.utils.MstKeyManager;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,8 +26,8 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 
-import javax.net.ssl.KeyManager;
 import java.security.KeyPair;
+import java.security.cert.X509Certificate;
 import java.util.UUID;
 
 @Configuration
@@ -46,25 +53,34 @@ public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapte
     }
 
     @Bean
-    public KeyManager keyManager() {
+    public MstKeyManager keyManager() throws Exception {
         // RSA 키 페어를 생성합니다. 실제 환경에서는 안전한 키 저장소를 사용하세요.
         KeyPair keyPair = KeyPairGeneratorUtils.generateRsaKeyPair(2048);
-        return new StaticKeyManager(keyPair);
+
+        // 자체 서명된 인증서를 생성합니다. 실제 환경에서는 신뢰할 수 있는 인증 기관(CA)에서 발급받은 인증서를 사용하세요.
+        X509Certificate certificate = CertificateUtils.generateSelfSignedCertificate(keyPair);
+        X509Certificate[] certificateChain = new X509Certificate[]{certificate};
+
+        return new MstKeyManager(keyPair, certificateChain);
     }
 
     @Bean
-    public JwtEncoder jwtEncoder(KeyManager keyManager) {
-        return new NimbusJwtEncoder(keyManager);
+    public JwtEncoder jwtEncoder(MstKeyManager keyManager) {
+        RSAKey rsaKey = keyManager.getRsaKey();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
+
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     @Bean
-    public OAuth2AuthorizationService authorizationService(RegisteredClientRepository registeredClientRepository) {
-        return new InMemoryOAuth2AuthorizationService(registeredClientRepository);
+    public OAuth2AuthorizationService authorizationService() {
+        return new InMemoryOAuth2AuthorizationService();
     }
 
     @Bean
-    public OAuth2AuthorizationConsentService authorizationConsentService(RegisteredClientRepository registeredClientRepository) {
-        return new InMemoryOAuth2AuthorizationConsentService(registeredClientRepository);
+    public OAuth2AuthorizationConsentService authorizationConsentService() {
+        return new InMemoryOAuth2AuthorizationConsentService();
     }
 
     @Bean

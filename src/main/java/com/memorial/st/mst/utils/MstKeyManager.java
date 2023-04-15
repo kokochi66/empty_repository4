@@ -1,17 +1,24 @@
 package com.memorial.st.mst.utils;
 
+import com.nimbusds.jose.jwk.RSAKey;
+
 import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
 import java.security.KeyPair;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.UUID;
 
-public class KeyManager extends X509ExtendedKeyManager {
+public class MstKeyManager extends X509ExtendedKeyManager {
     private final KeyPair keyPair;
+    private final X509Certificate[] certificateChain;
 
-    public SimpleKeyManager(KeyPair keyPair) {
+    public MstKeyManager(KeyPair keyPair, X509Certificate[] certificateChain) {
         this.keyPair = keyPair;
+        this.certificateChain = certificateChain;
     }
 
     @Override
@@ -37,7 +44,7 @@ public class KeyManager extends X509ExtendedKeyManager {
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
         // 실제 환경에서는 X509 인증서를 반환해야 합니다.
-        return null;
+        return certificateChain;
     }
 
     @Override
@@ -45,8 +52,14 @@ public class KeyManager extends X509ExtendedKeyManager {
         return keyPair.getPrivate();
     }
 
-    @Override
-    public PublicKey getPublicKey(String alias) {
-        return keyPair.getPublic();
+    public RSAKey getRsaKey() {
+        RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
+        RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
+
+        return new RSAKey.Builder(publicKey)
+                .privateKey(privateKey)
+                .keyID(UUID.randomUUID().toString())
+                .build();
     }
+
 }
