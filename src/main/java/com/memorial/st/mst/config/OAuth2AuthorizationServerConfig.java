@@ -1,13 +1,17 @@
 package com.memorial.st.mst.config;
 
-import com.memorial.st.mst.utils.CertificateUtils;
 import com.memorial.st.mst.utils.KeyPairGeneratorUtils;
 import com.memorial.st.mst.utils.MstKeyManager;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.JWSKeySelector;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,8 +19,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
@@ -27,7 +31,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
 
 import java.security.KeyPair;
-import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
 @Configuration
@@ -56,21 +60,16 @@ public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapte
     public MstKeyManager keyManager() throws Exception {
         // RSA 키 페어를 생성합니다. 실제 환경에서는 안전한 키 저장소를 사용하세요.
         KeyPair keyPair = KeyPairGeneratorUtils.generateRsaKeyPair(2048);
-
-        // 자체 서명된 인증서를 생성합니다. 실제 환경에서는 신뢰할 수 있는 인증 기관(CA)에서 발급받은 인증서를 사용하세요.
-        X509Certificate certificate = CertificateUtils.generateSelfSignedCertificate(keyPair);
-        X509Certificate[] certificateChain = new X509Certificate[]{certificate};
-
-        return new MstKeyManager(keyPair, certificateChain);
+        return new MstKeyManager(keyPair);
     }
 
-    @Bean
-    public JwtEncoder jwtEncoder(MstKeyManager keyManager) {
-        RSAKey rsaKey = keyManager.getRsaKey();
-        JWKSet jwkSet = new JWKSet(rsaKey);
-        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(jwkSet);
 
-        return new NimbusJwtEncoder(jwkSource);
+    @Bean
+    public JWKSource<SecurityContext> jwkSource(MstKeyManager keyManager) {
+        RSAPublicKey publicKey = keyManager.getPublicKey();
+        RSAKey rsaKey = new RSAKey.Builder(publicKey).keyID("mst-key-id").build();
+        JWKSet jwkSet = new JWKSet(rsaKey);
+        return new ImmutableJWKSet<>(jwkSet);
     }
 
     @Bean
@@ -97,5 +96,15 @@ public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapte
                 .anyRequest().authenticated()
                 .and()
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(MstKeyManager keyManager) {
+        JWKSource<SecurityContext> jwkSource = new ImmutableJWKSet<>(keyManager.getJWKSet());
+        JWSAlgorithm jwsAlgorithm = JWSAlgorithm.RS256;
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        JWSKeySelector<SecurityContext> jwsKeySelector = new JWSVerificationKeySelector<>(jwsAlgorithm, jwkSource);
+        jwtProcessor.setJWSKeySelector(jwsKeySelector);
+        return new NimbusJwtDecoder(jwtProcessor);
     }
 }
