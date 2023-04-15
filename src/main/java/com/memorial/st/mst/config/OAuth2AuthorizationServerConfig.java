@@ -1,5 +1,6 @@
 package com.memorial.st.mst.config;
 
+import com.memorial.st.mst.domain.client.service.ClientEntityRepository;
 import com.memorial.st.mst.utils.KeyPairGeneratorUtils;
 import com.memorial.st.mst.utils.MstKeyManager;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -12,6 +13,7 @@ import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,7 +37,10 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
 @Configuration
+@RequiredArgsConstructor
 public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapter {
+
+    private final ClientEntityRepository clientEntityRepository;
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
@@ -92,9 +97,11 @@ public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapte
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/public/**").permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll() // 모든 요청에 대한 접근을 허용
                 .and()
+                .csrf().disable() // CSRF 보호 비활성화
+                .formLogin().disable() // 폼 로그인 비활성화
+                .httpBasic().disable() // HTTP Basic 인증 비활성화
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
     }
 

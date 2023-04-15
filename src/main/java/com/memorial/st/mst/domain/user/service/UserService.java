@@ -1,12 +1,11 @@
-package com.memorial.st.mst.service.user;
+package com.memorial.st.mst.domain.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.RateLimiter;
 import com.memorial.st.mst.domain.user.MstRole;
 import com.memorial.st.mst.domain.user.MstUser;
-import com.memorial.st.mst.service.user.repository.MstUserRepository;
+import com.memorial.st.mst.domain.user.service.repository.MstUserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
