@@ -1,6 +1,7 @@
 package com.memorial.st.mst.config;
 
 import com.memorial.st.mst.domain.client.service.ClientEntityRepository;
+import com.memorial.st.mst.domain.client.service.DBRegisteredClientRepository;
 import com.memorial.st.mst.utils.KeyPairGeneratorUtils;
 import com.memorial.st.mst.utils.MstKeyManager;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -18,47 +19,31 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.InMemoryOAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
-import java.util.UUID;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapter {
+public class AuthorizationServerConfig extends WebSecurityConfigurerAdapter {
 
     private final ClientEntityRepository clientEntityRepository;
 
     @Bean
-    public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
-                .clientId("client-id")
-                .clientSecret("client-secret")
-                .clientAuthenticationMethod(new ClientAuthenticationMethod("basic"))
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-                .redirectUri("http://localhost:8080/login/oauth2/code/callback")
-                .scopes(scopes -> {
-                    scopes.add("read");
-                    scopes.add("write");
-                })
-//                .clientSettings(clientSettings -> clientSettings(true))      0.2.0 에서는 기본값으로 사용자 동의를 요구하도록 설정 되어있음
-                .build();
-
-        return new InMemoryRegisteredClientRepository(registeredClient);
+    public RegisteredClientRepository registeredClientRepository(DBRegisteredClientRepository dbRegisteredClientRepository) {
+        return dbRegisteredClientRepository;
     }
 
     @Bean
@@ -91,7 +76,25 @@ public class OAuth2AuthorizationServerConfig extends WebSecurityConfigurerAdapte
     public ProviderSettings providerSettings() {
         return ProviderSettings.builder()
                 .issuer("http://localhost:8080")
+                .tokenEndpoint("/oath2/token")
                 .build();
+    }
+
+    @Bean
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        OAuth2AuthorizationServerConfigurer<HttpSecurity> authorizationServerConfigurer =
+                new OAuth2AuthorizationServerConfigurer<>();
+        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
+        http
+                .requestMatcher(endpointsMatcher)
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests.anyRequest().authenticated()
+                )
+                .apply(authorizationServerConfigurer)
+                .oauth2AuthorizationServer(authorizationServer ->
+                        authorizationServer.providerSettings(providerSettings())
+                );
+        return http.build();
     }
 
     @Override
