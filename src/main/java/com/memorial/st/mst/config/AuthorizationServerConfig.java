@@ -1,6 +1,6 @@
 package com.memorial.st.mst.config;
 
-import com.memorial.st.mst.domain.client.service.ClientEntityRepository;
+import com.memorial.st.mst.domain.client.service.repository.ClientEntityRepository;
 import com.memorial.st.mst.domain.client.service.DBRegisteredClientRepository;
 import com.memorial.st.mst.utils.KeyPairGeneratorUtils;
 import com.memorial.st.mst.utils.MstKeyManager;
@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.authorization.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -29,8 +28,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.ProviderSettings;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.security.KeyPair;
 import java.security.interfaces.RSAPublicKey;
@@ -62,11 +59,14 @@ public class AuthorizationServerConfig extends WebSecurityConfigurerAdapter {
         return new ImmutableJWKSet<>(jwkSet);
     }
 
+
+    // TODO DB에 저장하도록 변경 필요
     @Bean
     public OAuth2AuthorizationService authorizationService() {
         return new InMemoryOAuth2AuthorizationService();
     }
 
+    // TODO DB에 저장하도록 변경 필요
     @Bean
     public OAuth2AuthorizationConsentService authorizationConsentService() {
         return new InMemoryOAuth2AuthorizationConsentService();
@@ -80,22 +80,6 @@ public class AuthorizationServerConfig extends WebSecurityConfigurerAdapter {
                 .build();
     }
 
-    @Bean
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-        OAuth2AuthorizationServerConfigurer<HttpSecurity> authorizationServerConfigurer =
-                new OAuth2AuthorizationServerConfigurer<>();
-        RequestMatcher endpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
-        http
-                .requestMatcher(endpointsMatcher)
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests.anyRequest().authenticated()
-                )
-                .apply(authorizationServerConfigurer)
-                .oauth2AuthorizationServer(authorizationServer ->
-                        authorizationServer.providerSettings(providerSettings())
-                );
-        return http.build();
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {

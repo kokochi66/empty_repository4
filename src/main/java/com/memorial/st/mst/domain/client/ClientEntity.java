@@ -23,7 +23,7 @@ public class ClientEntity {
     private String registeredClientId;
 
     @Column(nullable = false, unique = true)
-    private String clientId;
+    private String clientId;        // 인덱스 설정 필요
 
     @Column(nullable = false)
     private String clientSecret;

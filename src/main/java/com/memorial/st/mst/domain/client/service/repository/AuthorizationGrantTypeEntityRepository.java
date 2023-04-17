@@ -1,4 +1,4 @@
-package com.memorial.st.mst.domain.client.service;
+package com.memorial.st.mst.domain.client.service.repository;
 
 import com.memorial.st.mst.domain.client.AuthorizationGrantTypeEntity;
 import com.memorial.st.mst.domain.client.ClientEntity;

@@ -1,6 +1,7 @@
 package com.memorial.st.mst.domain.client.service;
 
 import com.memorial.st.mst.domain.client.*;
+import com.memorial.st.mst.domain.client.service.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
