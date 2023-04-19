@@ -15,15 +15,16 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "mst_client_entity")
 public class ClientEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long entityId;
 
+    @Id
     @Column(nullable = false, unique = true)
-    private String registeredClientId;
+    private String id;
 
     @Column(nullable = false, unique = true)
     private String clientId;        // 인덱스 설정 필요
+
+    @Column(nullable = false)
+    private String clientName;
 
     @Column(nullable = false)
     private String clientSecret;
@@ -43,7 +44,7 @@ public class ClientEntity {
 
     public static ClientEntity fromClientEntity(RegisteredClient registeredClient) {
         return ClientEntity.builder()
-                .registeredClientId(registeredClient.getId())
+                .id(registeredClient.getId())
                 .clientId(registeredClient.getClientId())
                 .clientSecret(registeredClient.getClientSecret())
                 .clientAuthenticationMethods(registeredClient.getClientAuthenticationMethods().stream().map(ClientAuthenticationMethodEntity::fromClientAuthenticationMethod).collect(Collectors.toSet()))
@@ -54,7 +55,7 @@ public class ClientEntity {
     }
 
     public RegisteredClient toRegisteredClient() {
-        return RegisteredClient.withId(getRegisteredClientId())
+        return RegisteredClient.withId(getId())
                 .clientId(getClientId())
                 .clientSecret(getClientSecret())
                 .clientAuthenticationMethods(clientAuthenticationMethods -> clientAuthenticationMethods.addAll(

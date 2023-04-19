@@ -36,16 +36,12 @@ public class DBRegisteredClientRepository implements RegisteredClientRepository 
 
     @Override
     public RegisteredClient findById(String id) {
-        return optional(clientEntityRepository.findByRegisteredClientIdWithFetchJoin(id));
+        return optional(clientEntityRepository.findByIdWithFetchJoin(id));
     }
 
     @Override
     public RegisteredClient findByClientId(String clientId) {
         return optional(clientEntityRepository.findByClientIdWithFetchJoin(clientId));
-    }
-
-    public RegisteredClient findByEntityId(Long id) {
-        return optional(clientEntityRepository.findByIdWithFetchJoin(id));
     }
 
     private RegisteredClient optional(Optional<ClientEntity> clientEntityOptional) {
