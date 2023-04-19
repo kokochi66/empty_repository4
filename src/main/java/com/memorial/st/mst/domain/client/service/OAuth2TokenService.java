@@ -41,6 +41,8 @@ public class OAuth2TokenService {
         int expiresIn = 3600; // 토큰 만료 시간 (초)
         String tokenType = "Bearer"; // 토큰 타입
 
+        // test
+
         // 액세스 토큰 응답 객체 생성 및 반환
         return new AccessTokenResponse(accessToken, expiresIn, tokenType, scope);
     }
