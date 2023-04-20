@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ClientEntityRepository extends JpaRepository<ClientEntity, Long> {
+public interface ClientEntityRepository extends JpaRepository<ClientEntity, String> {
 
     @EntityGraph(attributePaths = {"clientAuthenticationMethods", "authorizationGrantTypes", "scopes", "redirectUris"})
     @Query("SELECT c FROM ClientEntity c WHERE c.id = :id")
